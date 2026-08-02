@@ -167,10 +167,15 @@ function didDocumentUrl(did: string): URL {
 
 async function fetchDidDocument(did: string): Promise<DidDocument> {
   const response = await fetch(didDocumentUrl(did), {
-    redirect: "error",
+    // Cloudflare Workers does not implement redirect: "error". Manual mode
+    // preserves the same security boundary when redirects are rejected below.
+    redirect: "manual",
     headers: { Accept: "application/did+ld+json, application/json" },
     signal: AbortSignal.timeout(3000),
   });
+  if (response.status >= 300 && response.status < 400) {
+    throw new Error("DID resolution redirects are not permitted");
+  }
   if (!response.ok) throw new Error("DID resolution failed");
 
   const declaredLength = Number(response.headers.get("Content-Length") ?? "0");
