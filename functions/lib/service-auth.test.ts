@@ -116,8 +116,29 @@ describe("verifyTrackingToken", () => {
       ).resolves.toBeUndefined();
       expect(fetchSpy).toHaveBeenCalledWith(
         new URL(`https://plc.directory/${encodeURIComponent(plcDid)}`),
-        expect.objectContaining({ redirect: "error" }),
+        expect.objectContaining({ redirect: "manual" }),
       );
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
+  it("does not follow redirects while resolving a DID document", async () => {
+    const plcDid = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa";
+    const keypair = await Secp256k1Keypair.create();
+    const token = await createToken(keypair, { iss: plcDid });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(null, {
+        status: 302,
+        headers: { Location: "https://example.com/untrusted" },
+      }),
+    );
+
+    try {
+      await expect(
+        verifyTrackingToken(token, plcDid, { now: NOW }),
+      ).rejects.toMatchObject({ code: "did_resolution_failed" });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     } finally {
       fetchSpy.mockRestore();
     }
