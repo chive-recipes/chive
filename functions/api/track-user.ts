@@ -1,4 +1,7 @@
-import { verifyTrackingToken } from "../lib/service-auth";
+import {
+  ServiceAuthError,
+  verifyTrackingToken,
+} from "../lib/service-auth";
 
 export interface Env {
   DB: D1Database;
@@ -61,7 +64,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     await verifyTrackingToken(authHeader.slice("Bearer ".length), data.did);
   } catch (error) {
     console.warn("User registration authentication failed", error);
-    return jsonResponse(401, { error: "Invalid authentication proof" });
+    return jsonResponse(401, {
+      error: "Invalid authentication proof",
+      code:
+        error instanceof ServiceAuthError ? error.code : "verification_failed",
+    });
   }
 
   try {

@@ -22,16 +22,36 @@ type SigningKeyResolver = (
 
 interface ServiceTokenHeader {
   alg: "ES256" | "ES256K";
-  typ: "JWT";
+  typ?: string;
 }
 
 interface ServiceTokenPayload {
   iss: string;
   aud: string;
-  lxm: string;
-  iat: number;
+  lxm?: string;
+  iat?: number;
   exp: number;
-  jti: string;
+  jti?: string;
+}
+
+export type ServiceAuthErrorCode =
+  | "malformed_token"
+  | "invalid_issuer"
+  | "invalid_audience"
+  | "invalid_method"
+  | "invalid_time"
+  | "did_resolution_failed"
+  | "invalid_signature";
+
+export class ServiceAuthError extends Error {
+  constructor(
+    public readonly code: ServiceAuthErrorCode,
+    message: string,
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
+    this.name = "ServiceAuthError";
+  }
 }
 
 function decodeBase64Url(value: string): Uint8Array {
@@ -46,33 +66,58 @@ function parseJsonPart(value: string): unknown {
 }
 
 function parseHeader(value: string): ServiceTokenHeader {
-  const header = parseJsonPart(value) as Partial<ServiceTokenHeader>;
+  let header: Partial<ServiceTokenHeader>;
+  try {
+    header = parseJsonPart(value) as Partial<ServiceTokenHeader>;
+  } catch (cause) {
+    throw new ServiceAuthError(
+      "malformed_token",
+      "Invalid service token header",
+      { cause },
+    );
+  }
   if (
     !header ||
     typeof header !== "object" ||
     (header.alg !== "ES256" && header.alg !== "ES256K") ||
-    header.typ !== "JWT"
+    (header.typ !== undefined && header.typ !== "JWT")
   ) {
-    throw new Error("Invalid service token header");
+    throw new ServiceAuthError(
+      "malformed_token",
+      "Invalid service token header",
+    );
   }
   return header as ServiceTokenHeader;
 }
 
 function parsePayload(value: string): ServiceTokenPayload {
-  const payload = parseJsonPart(value) as Partial<ServiceTokenPayload>;
+  let payload: Partial<ServiceTokenPayload>;
+  try {
+    payload = parseJsonPart(value) as Partial<ServiceTokenPayload>;
+  } catch (cause) {
+    throw new ServiceAuthError(
+      "malformed_token",
+      "Invalid service token payload",
+      { cause },
+    );
+  }
   if (
     !payload ||
     typeof payload !== "object" ||
     typeof payload.iss !== "string" ||
     typeof payload.aud !== "string" ||
-    typeof payload.lxm !== "string" ||
-    !Number.isInteger(payload.iat) ||
     !Number.isInteger(payload.exp) ||
-    typeof payload.jti !== "string" ||
-    payload.jti.length < 8 ||
-    payload.jti.length > 256
+    (payload.lxm !== undefined && typeof payload.lxm !== "string") ||
+    (payload.iat !== undefined && !Number.isInteger(payload.iat)) ||
+    (payload.jti !== undefined &&
+      (typeof payload.jti !== "string" ||
+        payload.jti.length === 0 ||
+        payload.jti.length > 256))
   ) {
-    throw new Error("Invalid service token payload");
+    throw new ServiceAuthError(
+      "malformed_token",
+      "Invalid service token payload",
+    );
   }
   return payload as ServiceTokenPayload;
 }
@@ -174,12 +219,15 @@ export async function verifyTrackingToken(
   } = {},
 ): Promise<void> {
   if (token.length === 0 || token.length > MAX_TOKEN_LENGTH) {
-    throw new Error("Invalid service token length");
+    throw new ServiceAuthError(
+      "malformed_token",
+      "Invalid service token length",
+    );
   }
 
   const parts = token.split(".");
   if (parts.length !== 3 || parts.some((part) => part.length === 0)) {
-    throw new Error("Malformed service token");
+    throw new ServiceAuthError("malformed_token", "Malformed service token");
   }
 
   const [encodedHeader, encodedPayload, encodedSignature] = parts;
@@ -188,21 +236,35 @@ export async function verifyTrackingToken(
   const now = options.now ?? Math.floor(Date.now() / 1000);
 
   if (payload.iss !== expectedDid) {
-    throw new Error("Service token issuer does not match DID");
+    throw new ServiceAuthError(
+      "invalid_issuer",
+      "Service token issuer does not match DID",
+    );
   }
   if (payload.aud !== CHIVE_SERVICE_AUDIENCE) {
-    throw new Error("Service token audience does not match Chive");
+    throw new ServiceAuthError(
+      "invalid_audience",
+      "Service token audience does not match Chive",
+    );
   }
   if (payload.lxm !== TRACK_USER_METHOD) {
-    throw new Error("Service token method does not permit registration");
+    throw new ServiceAuthError(
+      "invalid_method",
+      "Service token method does not permit registration",
+    );
   }
   if (
-    payload.iat > now + CLOCK_SKEW_SECONDS ||
     payload.exp < now - CLOCK_SKEW_SECONDS ||
-    payload.exp <= payload.iat ||
-    payload.exp - payload.iat > MAX_TOKEN_LIFETIME_SECONDS
+    payload.exp > now + MAX_TOKEN_LIFETIME_SECONDS + CLOCK_SKEW_SECONDS ||
+    (payload.iat !== undefined &&
+      (payload.iat > now + CLOCK_SKEW_SECONDS ||
+        payload.iat < now - MAX_TOKEN_LIFETIME_SECONDS - CLOCK_SKEW_SECONDS ||
+        payload.exp <= payload.iat))
   ) {
-    throw new Error("Service token is outside its validity window");
+    throw new ServiceAuthError(
+      "invalid_time",
+      "Service token is outside its validity window",
+    );
   }
 
   const signingInput = new TextEncoder().encode(
@@ -211,15 +273,36 @@ export async function verifyTrackingToken(
   const signature = decodeBase64Url(encodedSignature);
   const getKey = options.resolveKey ?? resolveSigningKey;
 
-  const verifyWithKey = async (forceRefresh: boolean) => {
-    const key = await getKey(payload.iss, forceRefresh);
-    return verifySignature(key, signingInput, signature, {
-      jwtAlg: header.alg,
-      allowMalleableSig: true,
-    });
+  const verifyWithKey = async (forceRefresh: boolean): Promise<boolean> => {
+    let key: string;
+    try {
+      key = await getKey(payload.iss, forceRefresh);
+    } catch (cause) {
+      throw new ServiceAuthError(
+        "did_resolution_failed",
+        "Could not resolve the service token issuer",
+        { cause },
+      );
+    }
+
+    try {
+      return await verifySignature(key, signingInput, signature, {
+        jwtAlg: header.alg,
+        allowMalleableSig: true,
+      });
+    } catch (cause) {
+      throw new ServiceAuthError(
+        "invalid_signature",
+        "Could not verify the service token signature",
+        { cause },
+      );
+    }
   };
 
   if (!(await verifyWithKey(false)) && !(await verifyWithKey(true))) {
-    throw new Error("Service token signature is invalid");
+    throw new ServiceAuthError(
+      "invalid_signature",
+      "Service token signature is invalid",
+    );
   }
 }

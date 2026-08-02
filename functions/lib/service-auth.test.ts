@@ -1,7 +1,7 @@
 import { Secp256k1Keypair } from "@atproto/crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   CHIVE_SERVICE_AUDIENCE,
   TRACK_USER_METHOD,
@@ -25,9 +25,10 @@ function encodeBase64Url(value: string | Uint8Array): string {
 async function createToken(
   keypair: Secp256k1Keypair,
   overrides: Record<string, unknown> = {},
+  headerOverrides: Record<string, unknown> = {},
 ): Promise<string> {
   const header = encodeBase64Url(
-    JSON.stringify({ typ: "JWT", alg: keypair.jwtAlg }),
+    JSON.stringify({ typ: "JWT", alg: keypair.jwtAlg, ...headerOverrides }),
   );
   const payload = encodeBase64Url(
     JSON.stringify({
@@ -69,6 +70,57 @@ describe("verifyTrackingToken", () => {
         resolveKey: async () => keypair.did(),
       }),
     ).resolves.toBeUndefined();
+  });
+
+  it("accepts optional claims omitted by an interoperable PDS", async () => {
+    const keypair = await Secp256k1Keypair.create();
+    const token = await createToken(
+      keypair,
+      { iat: undefined, jti: undefined },
+      { typ: undefined },
+    );
+
+    await expect(
+      verifyTrackingToken(token, DID, {
+        now: NOW,
+        resolveKey: async () => keypair.did(),
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("resolves and verifies a Multikey from a PLC DID document", async () => {
+    const plcDid = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa";
+    const keypair = await Secp256k1Keypair.create();
+    const token = await createToken(keypair, { iss: plcDid });
+    const publicKeyMultibase = keypair.did().slice("did:key:".length);
+    const didDocument = JSON.stringify({
+      id: plcDid,
+      verificationMethod: [
+        {
+          id: `${plcDid}#atproto`,
+          type: "Multikey",
+          publicKeyMultibase,
+        },
+      ],
+    });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(didDocument, {
+        status: 200,
+        headers: { "Content-Length": String(didDocument.length) },
+      }),
+    );
+
+    try {
+      await expect(
+        verifyTrackingToken(token, plcDid, { now: NOW }),
+      ).resolves.toBeUndefined();
+      expect(fetchSpy).toHaveBeenCalledWith(
+        new URL(`https://plc.directory/${encodeURIComponent(plcDid)}`),
+        expect.objectContaining({ redirect: "error" }),
+      );
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 
   it("rejects tokens issued for another service", async () => {
