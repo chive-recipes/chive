@@ -52,6 +52,10 @@ export interface RecordEnvelope {
   value: ChiveRecipe;
 }
 
+export interface RecipeIndexEntry {
+  id: string;
+}
+
 // ── Collection Types ───────────────────────────────────────────────────────
 
 export interface CollectionRecipeRef {
@@ -136,6 +140,22 @@ export async function fetchRecipe(rkey: string, did: string = DID): Promise<Reco
   const res = await fetch(`${XRPC}/com.atproto.repo.getRecord?${params}`);
   if (!res.ok) throw new Error(`getRecord failed: ${res.status}`);
   return await res.json();
+}
+
+/**
+ * Keep collection references that are present in the generated discovery
+ * index. Collections are user-generated ATProto records and can temporarily
+ * retain references to recipes that have since been deleted.
+ */
+export function filterIndexedRecipeRkeys(
+  rkeys: string[],
+  index: RecipeIndexEntry[],
+  did: string = DID,
+): string[] {
+  const indexedUris = new Set(index.map((entry) => entry.id));
+  return rkeys.filter((rkey) =>
+    indexedUris.has(`at://${did}/${COLLECTION}/${rkey}`),
+  );
 }
 
 /** Resolve a handle to a DID */

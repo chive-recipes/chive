@@ -1,7 +1,9 @@
 import { Secp256k1Keypair } from "@atproto/crypto";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  CHIVE_SERVICE_DID,
+  CHIVE_SERVICE_AUDIENCE,
   TRACK_USER_METHOD,
   verifyTrackingToken,
 } from "./service-auth";
@@ -30,7 +32,7 @@ async function createToken(
   const payload = encodeBase64Url(
     JSON.stringify({
       iss: DID,
-      aud: CHIVE_SERVICE_DID,
+      aud: CHIVE_SERVICE_AUDIENCE,
       lxm: TRACK_USER_METHOD,
       iat: NOW,
       exp: NOW + 60,
@@ -44,6 +46,19 @@ async function createToken(
 }
 
 describe("verifyTrackingToken", () => {
+  it("matches the service published by Chive's did:web document", async () => {
+    const didDocument = JSON.parse(
+      await readFile(
+        resolve(process.cwd(), "public/.well-known/did.json"),
+        "utf8",
+      ),
+    ) as { service?: Array<{ id?: unknown }> };
+
+    expect(didDocument.service?.some(
+      (service) => service.id === CHIVE_SERVICE_AUDIENCE,
+    )).toBe(true);
+  });
+
   it("accepts a valid DID-signed service token", async () => {
     const keypair = await Secp256k1Keypair.create();
     const token = await createToken(keypair);
