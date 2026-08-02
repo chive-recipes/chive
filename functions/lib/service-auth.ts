@@ -7,7 +7,8 @@ import {
   verifySignature,
 } from "@atproto/crypto";
 
-export const CHIVE_SERVICE_DID = "did:plc:jp6ebt246qu4imwxgv6akfm4";
+export const CHIVE_SERVICE_AUDIENCE =
+  "did:web:chive.pages.dev#chive_tracker";
 export const TRACK_USER_METHOD = "com.chive.actor.track";
 
 const MAX_TOKEN_LENGTH = 4096;
@@ -189,7 +190,7 @@ export async function verifyTrackingToken(
   if (payload.iss !== expectedDid) {
     throw new Error("Service token issuer does not match DID");
   }
-  if (payload.aud !== CHIVE_SERVICE_DID) {
+  if (payload.aud !== CHIVE_SERVICE_AUDIENCE) {
     throw new Error("Service token audience does not match Chive");
   }
   if (payload.lxm !== TRACK_USER_METHOD) {

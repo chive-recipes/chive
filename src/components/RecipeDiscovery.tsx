@@ -1,7 +1,7 @@
 import { Search, Flame, ListFilter } from 'lucide-preact';
 import { useEffect, useState, useRef } from 'preact/hooks';
 import { route, useRouter } from 'preact-router';
-import { fetchRecipes, fetchRecipesByUris, fetchCollectionBySlug, fetchRecipe } from '../lib/api';
+import { fetchRecipes, fetchRecipesByUris, fetchCollectionBySlug, fetchRecipe, filterIndexedRecipeRkeys } from '../lib/api';
 import type { RecordEnvelope } from '../lib/api';
 import { RecipeGrid } from './RecipeGrid';
 import { RecipeCarousel } from './RecipeCarousel';
@@ -128,7 +128,14 @@ export function RecipeDiscovery({ showTrendingSeparator = false, limit, external
           try {
             const collectionData = await fetchCollectionBySlug('trending');
             if (gen !== searchGenRef.current) return;
-            const rkeys = collectionData.value.recipes.map(r => r.rkey);
+            const collectionRkeys = collectionData.value.recipes.map(r => r.rkey);
+            const rkeys = filterIndexedRecipeRkeys(collectionRkeys, titleIndex);
+            const staleReferenceCount = collectionRkeys.length - rkeys.length;
+            if (staleReferenceCount > 0) {
+              console.warn(
+                `Skipped ${staleReferenceCount} stale trending recipe reference${staleReferenceCount === 1 ? '' : 's'}.`,
+              );
+            }
             setExpectedCount(rkeys.length);
             const results: (RecordEnvelope | null)[] = new Array(rkeys.length).fill(null);
 

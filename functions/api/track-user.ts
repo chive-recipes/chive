@@ -14,11 +14,19 @@ function jsonResponse(status: number, body: Record<string, unknown>): Response {
 }
 
 function isSupportedDid(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.length <= 256 &&
-    /^did:(plc|web):[A-Za-z0-9._:%-]+$/.test(value)
-  );
+  if (typeof value !== "string" || value.length > 256) return false;
+  if (/^did:plc:[a-z2-7]{24}$/.test(value)) return true;
+  if (!value.startsWith("did:web:")) return false;
+
+  const encodedAuthority = value.slice("did:web:".length);
+  if (!encodedAuthority || encodedAuthority.includes(":")) return false;
+
+  try {
+    const authority = decodeURIComponent(encodedAuthority);
+    return /^[A-Za-z0-9.-]+$/.test(authority) && authority.includes(".");
+  } catch {
+    return false;
+  }
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -57,13 +65,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    await context.env.DB.prepare(
-      `CREATE TABLE IF NOT EXISTS tracked_users (
-        did TEXT PRIMARY KEY,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`,
-    ).run();
-
     await context.env.DB.prepare(
       "INSERT OR IGNORE INTO tracked_users (did) VALUES (?)",
     )

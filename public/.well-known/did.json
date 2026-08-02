@@ -1,0 +1,11 @@
+{
+  "@context": ["https://www.w3.org/ns/did/v1"],
+  "id": "did:web:chive.pages.dev",
+  "service": [
+    {
+      "id": "did:web:chive.pages.dev#chive_tracker",
+      "type": "ChiveUserTrackingService",
+      "serviceEndpoint": "https://chive.pages.dev/api/track-user"
+    }
+  ]
+}

@@ -24,6 +24,12 @@ The registration endpoint accepts a short-lived ATProto service-auth token
 signed by the user's DID key. OAuth access tokens and DPoP keys remain in the
 browser and are never sent to Chive.
 
+The endpoint is public by design: its source contains no credentials or
+indexing policy. It accepts only proofs scoped to
+`did:web:chive.pages.dev#chive_tracker` and `com.chive.actor.track`, then stores
+the authenticated DID in D1. The private indexer has read-only access to that
+registration data.
+
 ## Development
 
 Requirements: Node.js 22 or newer.
@@ -44,6 +50,13 @@ npm run test:e2e
 
 The app can run without Cloudflare locally. User registration requires a Pages
 environment with a D1 binding named `DB`.
+
+The D1 schema lives in `migrations/`. Apply migrations when provisioning a new
+database with `npx wrangler d1 migrations apply chive_users --remote`; the
+request handler deliberately does not run schema changes.
+
+After changing OAuth scopes, existing users must sign out and back in before
+their PDS can issue a proof carrying the new permission.
 
 ## Deployment
 
@@ -76,5 +89,3 @@ Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.m
 ## License
 
 [MIT](LICENSE)
-
-

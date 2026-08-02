@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { extractRkey } from '../api';
+import { DID, COLLECTION, extractRkey, filterIndexedRecipeRkeys } from '../api';
 
 describe('api utilities', () => {
   describe('extractRkey', () => {
@@ -16,6 +16,28 @@ describe('api utilities', () => {
     it('should handle URIs without a path gracefully', () => {
       const uri = 'at://did:plc:xyz';
       expect(extractRkey(uri)).toBe('did:plc:xyz');
+    });
+  });
+
+  describe('filterIndexedRecipeRkeys', () => {
+    it('removes collection references that are absent from the discovery index', () => {
+      const indexed = `at://${DID}/${COLLECTION}/still-there`;
+
+      expect(
+        filterIndexedRecipeRkeys(
+          ['deleted', 'still-there'],
+          [{ id: indexed }],
+        ),
+      ).toEqual(['still-there']);
+    });
+
+    it('does not confuse the same rkey in another repository for a match', () => {
+      expect(
+        filterIndexedRecipeRkeys(
+          ['same-key'],
+          [{ id: `at://did:plc:another/${COLLECTION}/same-key` }],
+        ),
+      ).toEqual([]);
     });
   });
 
