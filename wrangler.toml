@@ -1,0 +1,8 @@
+name = "chive"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-08-02"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chive_users"
+database_id = "7ed52013-20c2-4e2b-8f3a-a98081d2d40a"

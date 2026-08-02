@@ -1,0 +1,440 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colors */
+  --color-emerald: #27ae60;
+  --color-mint: #ebf7ed;
+  --color-forest: #1e8449;
+  --color-slate: #1e293b;
+  --color-paper: #FDFDFD;
+  --color-muted-main: #64748b;
+  --color-muted-light: #94a3b8;
+
+  /* Typography axes for Recursive */
+  --font-body: "slnt" 0, "wght" 400, "CASL" 0, "MONO" 0;
+  --font-heading: "slnt" 0, "wght" 900, "CASL" 1, "MONO" 0;
+  --font-emphasis: "slnt" -15, "wght" 900, "CASL" 1, "MONO" 0;
+  --font-tech: "slnt" 0, "wght" 700, "CASL" 0, "MONO" 1;
+  --font-brand: "slnt" 0, "wght" 900, "CASL" 1, "MONO" 1;
+  --font-sharp: "slnt" 0, "wght" 900, "CASL" 0, "MONO" 0;
+}
+
+/* Basic Setup */
+:root {
+  font-family: 'Recursive', system-ui, sans-serif;
+  font-variation-settings: var(--font-body);
+  color: var(--color-slate);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* We set html background to emerald so that any bottom overscroll is green */
+  background-color: var(--color-emerald);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  /* Contain horizontal overflow here — iOS Safari respects it on body, not on :root */
+  overflow-x: hidden;
+  /* Set body background to emerald as well, which iOS Safari uses for bottom overscroll */
+  background-color: var(--color-emerald);
+}
+
+/* 
+ * The iOS Safari different top/bottom overscroll fix:
+ * Since Safari uses the body's background color for both top and bottom overscroll,
+ * we set body background to the bottom color (emerald).
+ * To make the top overscroll white, we place an absolute pseudo-element 
+ * exactly above the top of the document canvas. When overscrolling down,
+ * this white block is pulled into the viewport.
+ */
+body::before {
+  content: "";
+  position: absolute;
+  top: -100vh;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #ffffff;
+  z-index: -1;
+}
+
+#app {
+  /* overflow-x: clip visually clips overflow without creating a scroll container,
+     so position:sticky on the header still works. */
+  overflow-x: clip;
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-variation-settings: var(--font-heading);
+  margin-top: 0;
+}
+
+p {
+  margin-top: 0;
+  line-height: 1.6;
+}
+
+/* Typography Utilities */
+.font-body {
+  font-variation-settings: var(--font-body);
+}
+
+.font-heading {
+  font-variation-settings: var(--font-heading);
+}
+
+.font-emphasis {
+  font-variation-settings: var(--font-emphasis);
+}
+
+.font-tech {
+  font-variation-settings: var(--font-tech);
+}
+
+.font-brand {
+  font-variation-settings: var(--font-brand);
+}
+
+.font-sharp {
+  font-variation-settings: var(--font-sharp);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-mint);
+  border-left: 2px solid var(--color-emerald);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-emerald);
+  border-left: 2px solid var(--color-emerald);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-forest);
+}
+
+/* Utility to hide scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Custom Pill Scrollbar */
+.pill-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.pill-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pill-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-emerald);
+  border-radius: 9999px;
+}
+
+.pill-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-forest);
+}
+
+.pill-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-emerald) transparent;
+}
+
+/* Animations */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUpFade 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-card-fade-in {
+  animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger children animations */
+.stagger-1 {
+  animation-delay: 50ms;
+}
+
+.stagger-2 {
+  animation-delay: 100ms;
+}
+
+.stagger-3 {
+  animation-delay: 150ms;
+}
+
+.stagger-4 {
+  animation-delay: 200ms;
+}
+
+/* Utilities */
+.sh-standard {
+  box-shadow: 4px 4px 0px var(--color-mint);
+}
+
+.sh-deep {
+  box-shadow: 4px 4px 0px var(--color-forest);
+}
+
+.sh-hover {
+  box-shadow: 12px 12px 0px var(--color-mint);
+}
+
+@keyframes floatSoft {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
+@keyframes heroScrollUp {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(calc(-50% - 12px));
+  }
+}
+
+@keyframes heroScrollDown {
+  0% {
+    transform: translateY(calc(-50% - 12px));
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-scroll-up {
+  animation: heroScrollUp 40s linear infinite;
+}
+
+.animate-hero-scroll-down {
+  animation: heroScrollDown 40s linear infinite;
+}
+
+/* Scroll State Utilities */
+.container-scroll-state {
+  container-type: scroll-state;
+}
+
+@container scroll-state(scrollable: top) {
+  .indicator-top {
+    opacity: 1 !important;
+  }
+}
+
+@container scroll-state(scrollable: bottom) {
+  .indicator-bottom {
+    opacity: 1 !important;
+  }
+}
+
+/* Print Stylesheet Layout - Optimized for high contrast, clean formatting, and ink saving */
+@media print {
+
+  /* 1. Global Reset to High-Contrast Grayscale */
+  body,
+  html,
+  main,
+  div,
+  p,
+  span,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  ul,
+  li {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #1a1a1a !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 2. Hide Ink-Wasting/Interactive Elements */
+  [class*="h-[300px]"],
+  [class*="h-[500px]"],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* 3. Force 1-Column Linear Layout */
+  .flex-col.lg\:flex-row {
+    display: block !important;
+  }
+
+  .flex-\[1\.5\] {
+    width: 100% !important;
+  }
+
+  /* 4. Display Sidebar Components Inline */
+  .lg\:hidden {
+    display: block !important;
+  }
+
+  .hidden.lg\:flex {
+    display: none !important;
+  }
+
+  /* 5. Clean up Ingredients & Nutrition Cards */
+  .bg-emerald.rounded-3xl.overflow-hidden {
+    border: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .bg-forest.px-5.py-4 {
+    padding: 0 0 0.5rem 0 !important;
+    border-bottom: 2px solid #1a1a1a !important;
+    justify-content: flex-start !important;
+  }
+
+  .bg-forest.px-5.py-4 span {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    letter-spacing: normal !important;
+  }
+
+  .p-8.bg-paper {
+    padding: 1rem 0 !important;
+  }
+
+  .text-forest {
+    color: #1a1a1a !important;
+  }
+
+  .w-5.h-5.mt-1.shrink-0 {
+    border: 1px solid #1a1a1a !important;
+    background: transparent !important;
+    color: #1a1a1a !important;
+  }
+
+  /* 6. Format Meta Badges (Time, Servings, Cuisine) */
+  .grid.grid-cols-2.md\:grid-cols-3 {
+    display: flex !important;
+    gap: 2rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .grid.grid-cols-2.md\:grid-cols-3>div {
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .grid.grid-cols-2.md\:grid-cols-3 span {
+    display: inline !important;
+    font-size: 1rem !important;
+  }
+
+  .grid.grid-cols-2.md\:grid-cols-3 span.block {
+    font-weight: bold !important;
+    margin-right: 0.5rem !important;
+  }
+
+  .grid.grid-cols-2.md\:grid-cols-3 span.block::after {
+    content: ":" !important;
+  }
+
+  /* 7. Format Instructions List & Page Breaks */
+  .space-y-12 {
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .text-4xl.md\:text-5xl.font-brand.text-mint {
+    font-size: 1.5rem !important;
+    color: #1a1a1a !important;
+    font-weight: bold !important;
+  }
+
+  .w-0\.5.h-full.min-h-16.bg-mint {
+    display: none !important;
+  }
+
+  .group {
+    page-break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* 8. Instructions page-break constraint */
+  .instructions-container {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* 9. Hide nutrition info completely in print */
+  .nutrition-card {
+    display: none !important;
+  }
+}
