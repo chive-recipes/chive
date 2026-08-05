@@ -68,7 +68,7 @@ export function HeroAnimation() {
   );
 
   return (
-    <div class="relative w-full h-[500px] md:h-[600px] overflow-hidden rounded-[2rem] flex justify-center items-center perspective-[1200px] pointer-events-none select-none">
+    <div inert aria-hidden="true" class="relative w-full h-[500px] md:h-[600px] overflow-hidden rounded-[2rem] flex justify-center items-center perspective-[1200px] pointer-events-none select-none">
       
       {/* 3D Rotated Container - Fixed size wrapper to avoid centering issues with infinite elements */}
       <div class={`absolute w-[120%] h-[120%] flex justify-center gap-6 transform [transform:rotateX(25deg)_rotateY(-15deg)_rotateZ(10deg)_scale(0.95)] md:[transform:rotateX(25deg)_rotateY(-20deg)_rotateZ(15deg)_scale(1.0)] transition-opacity duration-1000 ease-out ${loading ? 'opacity-0' : 'opacity-100'}`}>

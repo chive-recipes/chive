@@ -93,6 +93,7 @@ export function RecipeDiscovery({ showTrendingSeparator = false, limit, external
   const filterRef = useRef<HTMLDivElement>(null);
   // Tracks the current search generation to prevent stale async results from overwriting newer searches
   const searchGenRef = useRef(0);
+  const shuffledIndexRef = useRef<any[] | null>(null);
   const [{ url }] = useRouter();
   const searchParams = new URLSearchParams(url.split('?')[1] || '');
   const activeQuery = searchParams.get('q') ?? externalSearchQuery ?? '';
@@ -124,7 +125,7 @@ export function RecipeDiscovery({ showTrendingSeparator = false, limit, external
         const { titleIndex, topCuisines } = await getTitleIndex(user?.did);
         if (gen !== searchGenRef.current) return;
         setTopCuisineState(topCuisines);
-        if (!activeQuery && activeCuisines.length === 0) {
+        if (showTrendingSeparator && !activeQuery && activeCuisines.length === 0) {
           try {
             const collectionData = await fetchCollectionBySlug('trending');
             if (gen !== searchGenRef.current) return;
@@ -170,7 +171,16 @@ export function RecipeDiscovery({ showTrendingSeparator = false, limit, external
         } else {
           const lowerQ = activeQuery.toLowerCase();
           const lowerCuisines = activeCuisines.map(c => c.toLowerCase());
-          const matches = titleIndex!.filter((item: any) => {
+          
+          let sourceIndex = titleIndex;
+          if (!activeQuery && activeCuisines.length === 0) {
+            if (!shuffledIndexRef.current && titleIndex) {
+              shuffledIndexRef.current = [...titleIndex].sort(() => Math.random() - 0.5);
+            }
+            sourceIndex = shuffledIndexRef.current || titleIndex;
+          }
+
+          const matches = sourceIndex!.filter((item: any) => {
             if (activeQuery) {
               const matchQ =
                 (item.t && item.t.toLowerCase().includes(lowerQ)) ||

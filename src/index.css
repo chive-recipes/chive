@@ -5,6 +5,7 @@
 :root {
   /* Colors */
   --color-emerald: #27ae60;
+  --color-emerald-muted: #1b7d44;
   --color-mint: #ebf7ed;
   --color-forest: #1e8449;
   --color-slate: #1e293b;
@@ -37,6 +38,23 @@
 *::before,
 *::after {
   box-sizing: inherit;
+}
+
+/* Global Focus Styles — consistent keyboard navigation ring */
+:focus-visible {
+  outline: 2px solid var(--color-emerald);
+  outline-offset: 2px;
+}
+
+/* Remove default focus ring — focus-visible handles keyboard-only */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Branded text selection */
+::selection {
+  background-color: var(--color-mint);
+  color: var(--color-forest);
 }
 
 body {
