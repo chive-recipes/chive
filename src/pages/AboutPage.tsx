@@ -1,4 +1,5 @@
-import { ArrowUpRight } from 'lucide-preact';
+import { useState } from 'preact/hooks';
+import { ArrowUpRight, ChevronDown } from 'lucide-preact';
 import { useDocumentMetadata } from '../hooks/useDocumentMetadata';
 
 // Decorative rule divider
@@ -8,15 +9,6 @@ function Rule() {
       <div class="h-[2px] w-8 bg-emerald" />
       <div class="w-2 h-2 rounded-full bg-emerald" />
     </div>
-  );
-}
-
-// Inline pull quote
-function Pullquote({ children }: { children: preact.ComponentChildren }) {
-  return (
-    <blockquote class="border-l-4 border-emerald pl-6 my-6 text-lg md:text-xl font-emphasis text-emerald leading-snug">
-      {children}
-    </blockquote>
   );
 }
 
@@ -41,11 +33,13 @@ function Chapter({
   label,
   headline,
   children,
+  fullWidthChildren = false,
 }: {
   id: string;
   label: string;
   headline: string;
   children: preact.ComponentChildren;
+  fullWidthChildren?: boolean;
 }) {
   return (
     <section id={id} class="py-14 md:py-20 border-b-2 border-slate-100 last:border-b-0">
@@ -57,15 +51,37 @@ function Chapter({
           {headline}
         </h2>
         <Rule />
-        <div class="mt-6 space-y-4 text-base md:text-lg text-slate-500 leading-relaxed font-medium">
-          {children}
-        </div>
+      </div>
+      <div class={`mt-6 space-y-4 text-base md:text-lg text-slate-500 leading-relaxed font-medium ${fullWidthChildren ? 'w-full' : 'max-w-2xl'}`}>
+        {children}
       </div>
     </section>
   );
 }
 
-
+// FAQ Accordion Item
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div class="border-b border-slate-200 last:border-b-0">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        class="flex w-full items-center justify-between py-5 text-left text-lg font-sharp text-slate-800 hover:text-emerald transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald rounded-md"
+      >
+        <span>{question}</span>
+        <ChevronDown class={`w-5 h-5 text-slate-400 transition-transform duration-300 ease-in-out ${isOpen ? 'rotate-180 text-emerald' : ''}`} />
+      </button>
+      <div 
+        class={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] pb-5 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div class="overflow-hidden">
+          <p class="text-base md:text-lg text-slate-500 leading-relaxed m-0 font-medium">{answer}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AboutPage() {
   useDocumentMetadata({
@@ -99,33 +115,21 @@ export function AboutPage() {
           headline="Recipe sites got out of hand."
         >
           <p>
-            A simple search for "how long to roast a chicken" now returns a wall of
-            SEO-gamed prose, pop-up overlays, and autoplay videos. The actual recipe is
-            somewhere at the bottom.
+            A recipe is usually a short list of ingredients and a set of instructions. Online, it became an obstacle course of search-engine prose, autoplay video, pop-ups, account prompts, and advertisements. Even the recipes you save often remain trapped inside somebody else’s platform.
           </p>
-          <p>
-            Beyond the noise: the recipes you save are held on someone else's server. When
-            that platform changes its terms or shuts down, your cookbook disappears with it.
-          </p>
-          <Pullquote>
-            A recipe is a utility, not an SEO funnel. It belongs to the person cooking it.
-          </Pullquote>
         </Chapter>
 
-        {/* Chapter 2 — The UI */}
+        {/* Chapter 2 — The Design */}
         <Chapter
           id="kitchen"
           label="02 — The design"
           headline="Fast, clean, out of your way."
         >
           <p>
-            Chive is intentionally minimal. No ads, no autoplay, no newsletter
-            banners. When you're mid-cook with flour on your hands, the page should just
-            work — readable, instant, and obvious.
+            Chive is a small attempt to do things differently: a fast, open recipe collection designed around the person actually cooking.
           </p>
           <p>
-            Everything is formatted to actually cook from: ingredients on the left,
-            steps front and centre, nothing competing for your attention.
+            It began with thousands of recipes, carefully cleaned up and organized into a consistent format. No advertisements. No newsletter ambush. No ten-paragraph introduction before the oven temperature.
           </p>
         </Chapter>
 
@@ -136,34 +140,43 @@ export function AboutPage() {
           headline="Your recipes stay yours."
         >
           <p>
-            Chive is built on the <ExternalLink href="https://atproto.com">AT Protocol</ExternalLink> —
-            an open network where your data lives in a repository you control, not one tied to
-            this app. If Chive ever goes away, your recipes go with you, intact, to wherever you
-            take them next.
-          </p>
-          <Pullquote>
-            No lock-in. No export requests. You keep your recipes.
-          </Pullquote>
-          <p>
-            It's a practical choice as much as a philosophical one: decentralized data means no single point of failure, and an open network ensures the platform remains free and sustainable for everyone.
+            Chive is also an experiment in a different kind of ownership. Recipes you publish live in your <ExternalLink href="https://atproto.com">AT Protocol</ExternalLink> repository rather than in a private Chive database. Chive presents them, but it is not meant to become their permanent gatekeeper.
           </p>
         </Chapter>
 
-        {/* Chapter 4 — The Commons */}
+        {/* Chapter 4 — FAQ */}
         <Chapter
-          id="commons"
-          label="04 — The commons"
-          headline="Open by default."
+          id="faq"
+          label="04 — FAQ"
+          headline="Frequently asked questions."
+          fullWidthChildren={true}
         >
-          <p>
-            Cooking has always worked this way — recipes get passed around, tweaked, and
-            improved. Chive just makes that explicit. Everything here is shared under{' '}
-            <ExternalLink href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</ExternalLink>:
-            use it, adapt it, keep it open.
-          </p>
-          <p>
-            Same licence as Wikipedia. Same idea.
-          </p>
+          <div class="mt-8 border-t border-slate-200">
+            <FaqItem 
+              question="Is Chive really free?"
+              answer="Yes. We believe recipes should belong to everyone, unencumbered by ads, paywalls, or lock-in. Our goal is to build an open commons, not a walled garden."
+            />
+            <FaqItem 
+              question="How does the AT Protocol work for recipes?"
+              answer="Instead of storing your data in a closed database, we use the AT Protocol. It creates a personal repository for your recipes that you control. If you decide to leave Chive, your data goes with you."
+            />
+            <FaqItem 
+              question="Can I import my recipes from other sites?"
+              answer="Not yet, but we are actively working on tools to help you bring your existing recipe collections into your personal repository."
+            />
+            <FaqItem 
+              question="Wait... is this AI generated?"
+              answer="We use Large Language Models and diffusion models to cleanly parse, format, and illustrate our collection into a standardized, easy-to-read layout. But rest assured, these are real recipes from around the globe, created and tested by human cooks. We only use AI as a formatting tool, never to hallucinate ingredients or instructions."
+            />
+            <FaqItem 
+              question="How does licensing work?"
+              answer="All recipes published publicly on Chive are shared under a CC BY-SA 4.0 license, meaning anyone can use and adapt them as long as they provide attribution and share alike. Same as Wikipedia."
+            />
+            <FaqItem 
+              question="How can I support Chive?"
+              answer="The best way to support Chive is by using it! Add your favorite recipes, share them with others, and help us grow this open repository of culinary knowledge."
+            />
+          </div>
         </Chapter>
 
       </div>
