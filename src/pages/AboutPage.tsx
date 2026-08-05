@@ -12,15 +12,6 @@ function Rule() {
   );
 }
 
-// Inline pull quote
-function Pullquote({ children }: { children: preact.ComponentChildren }) {
-  return (
-    <blockquote class="border-l-4 border-emerald pl-6 my-6 text-lg md:text-xl font-emphasis text-emerald leading-snug">
-      {children}
-    </blockquote>
-  );
-}
-
 // External link with ArrowUpRight indicator
 function ExternalLink({ href, children }: { href: string; children: preact.ComponentChildren }) {
   return (
