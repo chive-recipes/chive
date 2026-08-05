@@ -66,8 +66,6 @@ export function HomepageCollections() {
   const [collections, setCollections] = useState<CollectionEnvelope[]>([]);
   const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isScrollable, setIsScrollable] = useState(false);
 
@@ -92,11 +90,6 @@ export function HomepageCollections() {
     const el = carouselRef.current;
     if (!el) return;
     
-    const atStart = el.scrollLeft <= 2;
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 5;
-    
-    setCanScrollLeft(!atStart);
-    setCanScrollRight(!atEnd && el.scrollWidth > el.clientWidth);
     setIsScrollable(el.scrollWidth > el.clientWidth);
 
     const maxScroll = el.scrollWidth - el.clientWidth;
