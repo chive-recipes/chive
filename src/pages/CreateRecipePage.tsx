@@ -5,6 +5,7 @@ import { processRecipeImage } from '../lib/imageUtils';
 import { publishRecipe, uploadBlob } from '../lib/api';
 import { getSessionFetchHandler, getCurrentDid } from '../lib/auth';
 import { Plus, X, Upload, LoaderCircle, Image as ImageIcon } from 'lucide-preact';
+import { Button } from '../components/ui/Button';
 
 export function CreateRecipePage() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -181,7 +182,7 @@ export function CreateRecipePage() {
   return (
     <div class="max-w-3xl mx-auto px-4 py-8 md:py-12">
       <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-brand text-emerald mb-2">Post a Recipe</h1>
+        <h1 class="text-3xl md:text-4xl font-sharp text-slate-800 mb-2">Post a Recipe</h1>
         <p class="text-slate-500 font-tech">Share your culinary creations with the world.</p>
       </div>
 
@@ -387,11 +388,7 @@ export function CreateRecipePage() {
 
         {/* Submit */}
         <div class="pt-4 flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            class="bg-emerald text-white font-sharp font-bold py-3 px-8 rounded-xl shadow-[4px_4px_0px_#27ae60] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#27ae60] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-[4px_4px_0px_#27ae60] flex items-center gap-2"
-          >
+          <Button type="submit" variant="primary" size="lg" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <LoaderCircle class="w-5 h-5 animate-spin" />
@@ -403,7 +400,7 @@ export function CreateRecipePage() {
                 Publish Recipe
               </>
             )}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

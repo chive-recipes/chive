@@ -25,7 +25,7 @@ export function Footer() {
               <ArrowRight class="w-4 h-4" />
             </a>
             <a
-              href="https://github.com/agoodyer/chive"
+              href="https://github.com/chive-recipes/chive"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center justify-center gap-2 bg-transparent text-white border border-white/20 hover:border-white/40 hover:text-white px-6 py-3 rounded-xl font-tech text-xs uppercase tracking-widest transition-all cursor-pointer no-underline text-center"
@@ -66,7 +66,7 @@ export function Footer() {
             </a>
             <span class="text-white/20">|</span>
             <a
-              href="https://github.com/agoodyer/chive"
+              href="https://github.com/chive-recipes"
               target="_blank"
               rel="noopener noreferrer"
               class="hover:text-white transition-colors no-underline inline-flex items-center gap-1"

@@ -6,6 +6,8 @@ import { fetchRecipes } from '../lib/api';
 import type { RecordEnvelope } from '../lib/api';
 import { RecipeGrid } from '../components/RecipeGrid';
 import { useDocumentMetadata } from '../hooks/useDocumentMetadata';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ButtonLink } from '../components/ui/Button';
 
 interface ProfilePageProps {
   identifier?: string;
@@ -72,21 +74,16 @@ export function ProfilePage({ identifier }: ProfilePageProps) {
   if (!targetIdentifier && !user) {
     return (
       <main class="max-w-6xl mx-auto p-4 md:p-8 animate-slide-up w-full">
-        <div class="text-center py-24 bg-white rounded-[2rem] border-2 border-slate-200 border-dashed flex flex-col items-center">
-          <div class="w-16 h-16 bg-mint/50 border-2 border-emerald rounded-2xl flex items-center justify-center mb-6">
-            <User class="w-8 h-8 text-emerald" />
-          </div>
-          <h1 class="text-2xl md:text-3xl font-sharp text-slate-800 mb-3">Sign in to view your profile</h1>
-          <p class="text-slate-500 mb-8 max-w-sm font-medium">
-            Sign in with your Bluesky account to manage and view all your published recipes.
-          </p>
-          <a
-            href="/login"
-            class="inline-flex items-center gap-2 bg-emerald text-white px-6 py-3 rounded-xl font-brand sh-standard hover:-translate-y-[1px] transition-all no-underline"
-          >
-            SIGN IN
-          </a>
-        </div>
+        <EmptyState
+          icon={<User class="w-8 h-8" />}
+          title="Sign in to view your profile"
+          description="Sign in with your Bluesky account to manage and view all your published recipes."
+          action={
+            <ButtonLink href="/login" variant="primary">
+              SIGN IN
+            </ButtonLink>
+          }
+        />
       </main>
     );
   }
@@ -95,21 +92,20 @@ export function ProfilePage({ identifier }: ProfilePageProps) {
   if (identifier && !isProfileLoading && isNotFound) {
     return (
       <main class="max-w-6xl mx-auto p-4 md:p-8 animate-slide-up w-full">
-        <div class="text-center py-24 bg-white rounded-[2rem] border-2 border-slate-200 border-dashed flex flex-col items-center">
-          <div class="w-16 h-16 bg-mint/50 border-2 border-emerald rounded-2xl flex items-center justify-center mb-6 text-emerald">
-            <UserX class="w-8 h-8" />
-          </div>
-          <h1 class="text-2xl md:text-3xl font-sharp text-slate-800 mb-3">User Not Found</h1>
-          <p class="text-slate-500 mb-8 max-w-md font-medium">
-            The profile for <code class="bg-mint/60 text-emerald px-2 py-0.5 rounded font-tech text-xs">{identifier}</code> could not be found on the AT Protocol network.
-          </p>
-          <a
-            href="/explore"
-            class="inline-flex items-center gap-2 bg-emerald text-white px-6 py-3 rounded-xl font-brand sh-standard hover:-translate-y-[1px] transition-all no-underline"
-          >
-            <Compass class="w-5 h-5" /> EXPLORE RECIPES
-          </a>
-        </div>
+        <EmptyState
+          icon={<UserX class="w-8 h-8" />}
+          title="User Not Found"
+          description={
+            <span>
+              The profile for <code class="bg-mint/60 text-emerald px-2 py-0.5 rounded font-tech text-xs">{identifier}</code> could not be found on the AT Protocol network.
+            </span>
+          }
+          action={
+            <ButtonLink href="/explore" variant="primary">
+              <Compass class="w-5 h-5" /> EXPLORE RECIPES
+            </ButtonLink>
+          }
+        />
       </main>
     );
   }
@@ -155,6 +151,7 @@ export function ProfilePage({ identifier }: ProfilePageProps) {
                     rel="noopener noreferrer"
                     class="inline-flex items-center gap-1 text-slate-400 hover:text-emerald transition-colors"
                     title="View on Bluesky"
+                    aria-label="View profile on Bluesky"
                   >
                     <ExternalLink class="w-4 h-4" />
                   </a>
@@ -164,12 +161,9 @@ export function ProfilePage({ identifier }: ProfilePageProps) {
           </div>
 
           {isOwnProfile && (
-            <a
-              href="/create"
-              class="inline-flex items-center gap-2 bg-white text-slate-700 border-2 border-slate-200 px-5 py-2.5 rounded-xl font-brand text-sm tracking-wide hover:border-emerald hover:text-emerald transition-all no-underline shrink-0 shadow-sm"
-            >
+            <ButtonLink href="/create" variant="secondary" size="md" class="shrink-0">
               <Plus class="w-4 h-4" /> POST RECIPE
-            </a>
+            </ButtonLink>
           )}
         </div>
       </div>
@@ -198,25 +192,20 @@ export function ProfilePage({ identifier }: ProfilePageProps) {
             <h3 class="text-lg font-sharp text-slate-600">Loading recipes...</h3>
           </div>
         ) : recipes.length === 0 ? (
-          <div class="text-center py-20 bg-white rounded-[2rem] border-2 border-slate-200 border-dashed flex flex-col items-center">
-            <div class="w-14 h-14 bg-mint/50 border-2 border-emerald/30 rounded-2xl flex items-center justify-center mb-4">
-              <ChefHat class="w-7 h-7 text-emerald" />
-            </div>
-            <h3 class="text-xl font-sharp text-slate-700 mb-2">No recipes published yet</h3>
-            <p class="text-slate-500 mb-6 max-w-sm text-sm font-medium">
-              {isOwnProfile
+          <EmptyState
+            icon={<ChefHat class="w-7 h-7" />}
+            title="No recipes published yet"
+            description={
+              isOwnProfile
                 ? 'You have not published any recipes under your DID yet.'
-                : `${profileUser?.displayName || 'This user'} has not published any recipes under their DID yet.`}
-            </p>
-            {isOwnProfile && (
-              <a
-                href="/create"
-                class="inline-flex items-center gap-2 bg-emerald text-white px-5 py-2.5 rounded-xl font-brand text-sm sh-standard hover:-translate-y-0.5 transition-all no-underline"
-              >
+                : `${profileUser?.displayName || 'This user'} has not published any recipes under their DID yet.`
+            }
+            action={isOwnProfile ? (
+              <ButtonLink href="/create" variant="primary">
                 <Plus class="w-4 h-4" /> POST YOUR FIRST RECIPE
-              </a>
-            )}
-          </div>
+              </ButtonLink>
+            ) : undefined}
+          />
         ) : (
           <RecipeGrid recipes={recipes} />
         )}

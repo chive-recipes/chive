@@ -2,6 +2,7 @@ import { Zap, ShieldX, Globe, Sparkles, ArrowRight } from 'lucide-preact';
 import { RecipeDiscovery } from '../components/RecipeDiscovery';
 import { HeroAnimation } from '../components/HeroAnimation';
 import { HeroSearchBar } from '../components/HeroSearchBar';
+import { HomepageCollections } from '../components/HomepageCollections';
 import { useDocumentMetadata } from '../hooks/useDocumentMetadata';
 
 export function HomePage() {
@@ -30,6 +31,7 @@ export function HomePage() {
           <HeroAnimation />
         </div>
       </header>
+
       <RecipeDiscovery showTrendingSeparator={true} hideSearchBar={true} />
 
       {/* Why Chive Section */}
@@ -87,6 +89,8 @@ export function HomePage() {
           </a>
         </div>
       </section>
+
+      <HomepageCollections />
     </main>
   );
 }

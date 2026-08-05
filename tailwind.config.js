@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         emerald: '#27ae60',
+        'emerald-muted': '#1b7d44',
         mint: '#ebf7ed',
         forest: '#1e8449',
         paper: '#FDFDFD',

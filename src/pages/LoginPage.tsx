@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuth } from '../hooks/useAuth';
+import { Button } from '../components/ui/Button';
 
 export function LoginPage() {
   const { user, isLoading, signIn } = useAuth();
@@ -33,7 +34,7 @@ export function LoginPage() {
   };
 
   return (
-    <div class="flex flex-col items-center justify-center min-h-screen px-4 py-12">
+    <div class="flex flex-col items-center justify-center min-h-screen px-4 py-12 bg-mint/30">
       {/* Brand Header */}
       <div class="flex flex-col items-center text-center mb-8">
         <a href="/" class="flex items-center gap-2.5 no-underline group">
@@ -84,13 +85,9 @@ export function LoginPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isSigningIn || !handle.trim()}
-            class="w-full bg-emerald hover:bg-forest text-white font-sharp font-bold text-sm py-2.5 rounded-xl transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
+          <Button type="submit" variant="primary" size="md" block disabled={isSigningIn || !handle.trim()}>
             {isSigningIn ? 'Redirecting...' : 'Sign in'}
-          </button>
+          </Button>
         </form>
       </div>
 

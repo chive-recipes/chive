@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, ChefHat, Flame, Bookmark, Link, Printer, Check, ShoppingCart, Copy, Trash2 } from 'lucide-preact';
+import { ArrowLeft, Share2, ChefHat, Bookmark, Link, Printer, Check, ShoppingCart, Copy, Trash2, Clock, Users, Flame } from 'lucide-preact';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { imageUrl, formatDuration, DID, deleteRecipe } from '../lib/api';
@@ -7,6 +7,7 @@ import { useBookmarks } from '../hooks/useBookmarks';
 import { useAuth } from '../hooks/useAuth';
 import { getSessionFetchHandler } from '../lib/auth';
 import { RecipeCreatorBadge } from './RecipeCreatorBadge';
+import { IconButton, Button } from './ui/Button';
 interface RecipePageProps {
   recipeEnvelope: RecordEnvelope;
 }
@@ -32,8 +33,15 @@ export function RecipePage({ recipeEnvelope }: RecipePageProps) {
         setShareOpen(false);
       }
     }
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setShareOpen(false);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
   const copyWithFeedback = (text: string, setCopiedState: (v: boolean) => void) => {
     navigator.clipboard.writeText(text);
@@ -124,52 +132,55 @@ export function RecipePage({ recipeEnvelope }: RecipePageProps) {
           <ArrowLeft class="w-5 h-5" />
           <span class="font-tech text-sm mt-0.5">BACK</span>
         </a>
-        <div class="flex gap-3 relative z-40" ref={shareRef}>
+        <div class="flex gap-2 md:gap-3 relative z-40" ref={shareRef}>
           {user?.did === authorDid && (
-            <button
+            <IconButton
+              label="Delete Recipe"
+              variant="danger"
               onClick={() => setShowDeleteConfirm(true)}
-              class="p-3 rounded-xl border-2 border-rose-500 text-rose-500 hover:bg-rose-500 hover:text-white transition-all cursor-pointer bg-transparent"
-              title="Delete Recipe"
             >
               <Trash2 class="w-5 h-5" />
-            </button>
+            </IconButton>
           )}
-          <button
+          <IconButton
+            label={shareOpen ? 'Close share menu' : 'Share'}
+            variant={shareOpen ? 'primary' : 'secondary'}
             onClick={() => setShareOpen(!shareOpen)}
-            class={`p-3 rounded-xl border-2 border-emerald hover:bg-emerald hover:text-white transition-all cursor-pointer ${shareOpen ? 'bg-emerald text-white' : 'bg-mint text-emerald'}`}
           >
             <Share2 class="w-5 h-5" />
-          </button>
+          </IconButton>
           {shareOpen && (
-            <div class="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl border-2 border-emerald sh-deep overflow-hidden z-40 flex flex-col font-medium font-tech uppercase text-xs tracking-wider animate-slide-up origin-top-right">
-              <button onClick={handleCopyLink} class="flex items-center gap-3 px-4 py-4 text-emerald border-none bg-white hover:bg-mint w-full text-left cursor-pointer transition-colors m-0 text-inherit border-b-2 border-emerald/10">
+            <div class="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl border-2 border-emerald sh-deep overflow-hidden z-40 flex flex-col font-medium font-tech uppercase text-xs tracking-wider animate-slide-up origin-top-right" role="menu">
+              <button onClick={handleCopyLink} class="flex items-center gap-3 px-4 py-4 text-emerald border-none bg-white hover:bg-mint w-full text-left cursor-pointer transition-colors m-0 text-inherit border-b-2 border-emerald/10" role="menuitem">
                 {copiedLink ? <Check class="w-4 h-4" /> : <Link class="w-4 h-4" />}
                 {copiedLink ? 'Copied Link!' : 'Copy Link'}
               </button>
-              <button onClick={handleCopyIngredients} class="flex items-center gap-3 px-4 py-4 text-emerald border-none bg-white hover:bg-mint w-full text-left cursor-pointer transition-colors m-0 text-inherit border-b-2 border-emerald/10">
+              <button onClick={handleCopyIngredients} class="flex items-center gap-3 px-4 py-4 text-emerald border-none bg-white hover:bg-mint w-full text-left cursor-pointer transition-colors m-0 text-inherit border-b-2 border-emerald/10" role="menuitem">
                 {copiedIngredients ? <Check class="w-4 h-4" /> : <ShoppingCart class="w-4 h-4" />}
                 {copiedIngredients ? 'Copied List!' : 'Copy Ingredients'}
               </button>
-              <button onClick={handlePrint} class="flex items-center gap-3 px-4 py-4 text-emerald border-none bg-white hover:bg-mint w-full text-left cursor-pointer transition-colors m-0 text-inherit">
+              <button onClick={handlePrint} class="flex items-center gap-3 px-4 py-4 text-emerald border-none bg-white hover:bg-mint w-full text-left cursor-pointer transition-colors m-0 text-inherit" role="menuitem">
                 <Printer class="w-4 h-4" />
                 Print Recipe
               </button>
             </div>
           )}
-          <button
+          <Button
             onClick={() => toggleBookmark(recipeEnvelope)}
-            class="bg-mint text-emerald px-6 py-3 rounded-xl border-2 border-emerald hover:bg-emerald hover:text-white transition-all cursor-pointer font-brand flex items-center justify-center gap-2 w-32"
+            variant="secondary"
+            size="md"
+            class="w-28 md:w-32"
           >
             <Bookmark class={`w-5 h-5 ${bookmarked ? 'fill-current' : ''}`} />
             {bookmarked ? 'SAVED' : 'SAVE'}
-          </button>
+          </Button>
         </div>
       </div>
       {/* Top Section: Image and Title/Desc */}
       <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start lg:items-center mb-16">
         {/* Left: Image */}
         <div class="w-full lg:flex-[1.5] shrink-0 flex flex-col">
-          <div class={`w-full aspect-[16/10] md:aspect-[4/3] border-2 border-emerald rounded-2xl md:rounded-[2rem] overflow-hidden sh-standard relative shrink-0 ${!imageLoaded ? 'bg-mint/50 animate-pulse' : 'bg-mint/10'}`}>
+          <div class={`w-full aspect-[16/10] md:aspect-[4/3] border-2 border-slate-100 rounded-2xl md:rounded-[2rem] overflow-hidden sh-standard relative shrink-0 ${!imageLoaded ? 'bg-mint/50 animate-pulse' : 'bg-mint/10'}`}>
             <img src={heroUrl} alt={recipe.name} class={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} fetchpriority="high" onLoad={() => setImageLoaded(true)} />
             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none print:hidden" />
             {/* Verified Badge Tooltip */}
@@ -185,21 +196,15 @@ export function RecipePage({ recipeEnvelope }: RecipePageProps) {
                 </div>
               </div>
             )}
-            <div class="absolute bottom-6 left-6 flex gap-2 flex-wrap">
-              {recipe.tags?.map(tag => (
-                <span key={tag} class="bg-white/90 backdrop-blur text-emerald border border-emerald px-3 py-1 rounded text-[10px] font-tech uppercase">
-                  {tag}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
 
         {/* Right: Title, Desc, Meta */}
         <div class="w-full lg:flex-1 flex flex-col justify-center">
-          <h1 class="text-4xl md:text-5xl lg:text-5xl font-emphasis mb-4 leading-[0.95] tracking-tight text-slate-800 m-0">
+          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-sharp mb-4 leading-[0.95] tracking-tight text-slate-800 m-0 text-balance">
             {recipe.name}
           </h1>
+          
           {recipe.description && (
             <p class="text-base md:text-lg text-slate-500 mb-4 max-w-2xl leading-relaxed">
               {recipe.description}
@@ -212,19 +217,30 @@ export function RecipePage({ recipeEnvelope }: RecipePageProps) {
           </div>
 
           {/* Meta Badges */}
-          <div class="grid grid-cols-3 gap-2 md:gap-3">
-            <div class="bg-mint p-2 md:p-3 rounded-xl border-2 border-emerald flex flex-col justify-center min-w-0">
-              <span class="block text-[9px] md:text-[10px] uppercase font-brand text-emerald/60 mb-0.5 md:mb-1 font-tech truncate">Time</span>
-              <span class="text-sm md:text-base font-bold text-emerald truncate">{recipe.times?.total ? formatDuration(recipe.times.total) : 'N/A'}</span>
-            </div>
-            <div class="bg-mint p-2 md:p-3 rounded-xl border-2 border-emerald flex flex-col justify-center min-w-0">
-              <span class="block text-[9px] md:text-[10px] uppercase font-brand text-emerald/60 mb-0.5 md:mb-1 font-tech truncate">Servings</span>
-              <span class="text-sm md:text-base font-bold text-emerald truncate">{recipe.yield || 'N/A'}</span>
-            </div>
-            <div class="bg-mint p-2 md:p-3 rounded-xl border-2 border-emerald flex flex-col justify-center min-w-0">
-              <span class="block text-[9px] md:text-[10px] uppercase font-brand text-emerald/60 mb-0.5 md:mb-1 font-tech truncate">Cuisine</span>
-              <span class="text-sm md:text-base font-bold text-emerald capitalize truncate">{recipe.cuisine || 'Mixed'}</span>
-            </div>
+          <div class="flex flex-wrap items-center gap-4 md:gap-6 text-sm md:text-[15px] font-tech uppercase tracking-tight text-emerald mb-5">
+            {recipe.times?.total && (
+              <span class="flex items-center gap-1.5">
+                <Clock class="w-4 h-4 md:w-5 md:h-5" /> {formatDuration(recipe.times.total)}
+              </span>
+            )}
+            {recipe.yield && (
+              <span class="flex items-center gap-1.5">
+                <Users class="w-4 h-4 md:w-5 md:h-5" /> {recipe.yield}
+              </span>
+            )}
+            {recipe.cuisine && (
+              <span class="flex items-center gap-1.5">
+                <ChefHat class="w-4 h-4 md:w-5 md:h-5" /> {recipe.cuisine}
+              </span>
+            )}
+          </div>
+
+          <div class="flex gap-2 flex-wrap">
+            {recipe.tags?.slice(0, 5).map(tag => (
+              <span key={tag} class="bg-mint/30 text-emerald border border-emerald/10 px-2 py-0.5 rounded text-[10px] md:text-[11px] font-tech font-bold uppercase tracking-wider">
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -347,9 +363,9 @@ function DesktopManifests({ recipe }: { recipe: any }) {
   }, [activeTab, recipe]);
 
   return (
-    <div class="bg-emerald rounded-3xl overflow-hidden sh-standard border-2 border-emerald flex flex-col min-h-0">
+    <div class="bg-white rounded-3xl overflow-hidden sh-standard border-2 border-slate-200 flex flex-col min-h-0">
       {recipe.nutrition ? (
-        <div class="flex shrink-0 z-20 relative border-b-2 border-emerald">
+        <div class="flex shrink-0 z-20 relative border-b-2 border-slate-200">
           <button
             class={`flex-1 px-5 py-4 flex items-center justify-center gap-2 font-tech uppercase tracking-[0.2em] text-sm transition-colors border-none m-0 cursor-pointer ${activeTab === 'ingredients' ? 'text-white bg-emerald' : 'text-emerald bg-mint hover:bg-white'}`}
             onClick={() => setActiveTab('ingredients')}
@@ -366,7 +382,7 @@ function DesktopManifests({ recipe }: { recipe: any }) {
             )}
           </button>
           <button
-            class={`flex-1 px-5 py-4 flex items-center justify-center font-tech uppercase tracking-[0.2em] text-sm transition-colors border-none border-l-2 border-emerald m-0 cursor-pointer ${activeTab === 'nutrition' ? 'text-white bg-emerald' : 'text-emerald bg-mint hover:bg-white'}`}
+            class={`flex-1 px-5 py-4 flex items-center justify-center font-tech uppercase tracking-[0.2em] text-sm transition-colors border-none border-l-2 border-slate-200 m-0 cursor-pointer ${activeTab === 'nutrition' ? 'text-white bg-emerald' : 'text-emerald bg-mint hover:bg-white'}`}
             onClick={() => setActiveTab('nutrition')}
           >
             Nutrition
@@ -427,7 +443,7 @@ function IngredientsManifest({ recipe }: { recipe: any }) {
   };
 
   return (
-    <div class="bg-emerald rounded-3xl overflow-hidden sh-standard border-2 border-emerald flex flex-col">
+    <div class="bg-white rounded-3xl overflow-hidden sh-standard border-2 border-slate-200 flex flex-col">
       <div class="bg-emerald px-5 py-4 flex items-center justify-between shrink-0 z-20 relative">
         <div class="w-6" />
         <span class="text-sm font-sharp text-white tracking-[0.2em] font-tech uppercase pl-4">
@@ -451,7 +467,7 @@ function IngredientsManifest({ recipe }: { recipe: any }) {
 function NutritionInfo({ recipe }: { recipe: any }) {
   if (!recipe.nutrition) return null;
   return (
-    <div class="bg-emerald rounded-3xl overflow-hidden sh-standard border-2 border-emerald flex flex-col nutrition-card">
+    <div class="bg-white rounded-3xl overflow-hidden sh-standard border-2 border-slate-200 flex flex-col nutrition-card">
       <div class="bg-emerald px-5 py-4 flex items-center justify-center shrink-0 z-20 relative">
         <span class="text-sm font-sharp text-white tracking-[0.2em] font-tech uppercase">
           Nutrition Info
