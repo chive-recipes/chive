@@ -110,8 +110,8 @@ function PromoVideoPlayer() {
             type="button"
             onClick={toggleCaptions}
             class={`inline-flex items-center gap-1.5 text-xs font-tech px-3 py-1 rounded-full border transition-all cursor-pointer ${captionsOn
-                ? 'bg-emerald/10 border-emerald/30 text-emerald font-bold shadow-xs'
-                : 'bg-slate-100 border-slate-200 text-slate-400 hover:text-slate-600'
+              ? 'bg-emerald/10 border-emerald/30 text-emerald font-bold shadow-xs'
+              : 'bg-slate-100 border-slate-200 text-slate-400 hover:text-slate-600'
               }`}
             title="Toggle Closed Captions"
           >
@@ -155,8 +155,8 @@ export function AboutPage() {
     video: {
       url: "/chive.mp4",
       type: "video/mp4",
-      width: 3840,
-      height: 2160,
+      width: 1920,
+      height: 1080,
     },
   });
   return (
