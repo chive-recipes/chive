@@ -1,5 +1,5 @@
-import { useState } from 'preact/hooks';
-import { ArrowUpRight, ChevronDown } from 'lucide-preact';
+import { useState, useRef } from 'preact/hooks';
+import { ArrowUpRight, ChevronDown, Captions } from 'lucide-preact';
 import { useDocumentMetadata } from '../hooks/useDocumentMetadata';
 
 // Decorative rule divider
@@ -62,17 +62,17 @@ function Chapter({
 // FAQ Accordion Item
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   return (
     <div class="border-b border-slate-200 last:border-b-0">
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         class="flex w-full items-center justify-between py-5 text-left text-lg font-sharp text-slate-800 hover:text-emerald transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald rounded-md"
       >
         <span>{question}</span>
         <ChevronDown class={`w-5 h-5 text-slate-400 transition-transform duration-300 ease-in-out ${isOpen ? 'rotate-180 text-emerald' : ''}`} />
       </button>
-      <div 
+      <div
         class={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] pb-5 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
         <div class="overflow-hidden">
@@ -83,10 +83,81 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
+function PromoVideoPlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [captionsOn, setCaptionsOn] = useState(false);
+
+  const toggleCaptions = () => {
+    if (videoRef.current && videoRef.current.textTracks.length > 0) {
+      const track = videoRef.current.textTracks[0];
+      const nextState = !captionsOn;
+      track.mode = nextState ? 'showing' : 'hidden';
+      setCaptionsOn(nextState);
+    }
+  };
+
+  return (
+    <section class="border-b-2 border-slate-100 bg-slate-50/50 py-12 md:py-16">
+      <div class="max-w-4xl mx-auto px-4 md:px-8">
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="inline-block text-[10px] font-tech text-emerald uppercase tracking-[0.2em]">
+              Promo Showcase
+            </span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
+          </div>
+          <button
+            type="button"
+            onClick={toggleCaptions}
+            class={`inline-flex items-center gap-1.5 text-xs font-tech px-3 py-1 rounded-full border transition-all cursor-pointer ${captionsOn
+                ? 'bg-emerald/10 border-emerald/30 text-emerald font-bold shadow-xs'
+                : 'bg-slate-100 border-slate-200 text-slate-400 hover:text-slate-600'
+              }`}
+            title="Toggle Closed Captions"
+          >
+            <Captions class="w-3.5 h-3.5" />
+            <span>CC {captionsOn ? 'ON' : 'OFF'}</span>
+          </button>
+        </div>
+        <div class="relative overflow-hidden rounded-2xl md:rounded-3xl border-2 border-slate-200/80 shadow-2xl bg-white">
+          <div class="aspect-video w-full">
+            <video
+              ref={videoRef}
+              controls
+              preload="metadata"
+              poster="/poster.png"
+              playsInline
+              class="w-full h-full object-cover block"
+            >
+              <source src="/chive.mp4" type="video/mp4" />
+              <track
+                kind="captions"
+                src="/subtitles.vtt"
+                srcLang="en"
+                label="English"
+              />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+        <p class="mt-4 text-xs md:text-sm text-slate-400 font-medium text-center italic">
+          A 1-minute visual tour of Chive’s recipe experience.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export function AboutPage() {
   useDocumentMetadata({
     title: "About Chive",
-    description: "Chive is an open, community-driven recipe space. We believe recipes belong to everyone. Discover why we built Chive and how we use the AT Protocol."
+    description: "Chive is an open, community-driven recipe space. We believe recipes belong to everyone. Discover why we built Chive and how we use the AT Protocol.",
+    video: {
+      url: "/chive.mp4",
+      type: "video/mp4",
+      width: 3840,
+      height: 2160,
+    },
   });
   return (
     <main class="animate-slide-up">
@@ -104,6 +175,9 @@ export function AboutPage() {
           </p>
         </div>
       </header>
+
+      {/* ── Promo Video Showcase ─────────────────────────────────── */}
+      <PromoVideoPlayer />
 
       {/* ── Body ─────────────────────────────────────────────────── */}
       <div class="max-w-4xl mx-auto px-4 md:px-8">
@@ -152,27 +226,27 @@ export function AboutPage() {
           fullWidthChildren={true}
         >
           <div class="mt-8 border-t border-slate-200">
-            <FaqItem 
+            <FaqItem
               question="Is Chive really free?"
               answer="Yes. We believe recipes should belong to everyone, unencumbered by ads, paywalls, or lock-in. Our goal is to build an open commons, not a walled garden."
             />
-            <FaqItem 
+            <FaqItem
               question="How does the AT Protocol work for recipes?"
               answer="Instead of storing your data in a closed database, we use the AT Protocol. It creates a personal repository for your recipes that you control. If you decide to leave Chive, your data goes with you."
             />
-            <FaqItem 
+            <FaqItem
               question="Can I import my recipes from other sites?"
               answer="Not yet, but we are actively working on tools to help you bring your existing recipe collections into your personal repository."
             />
-            <FaqItem 
+            <FaqItem
               question="Wait... is this AI generated?"
               answer="We use Large Language Models and diffusion models to cleanly parse, format, and illustrate our collection into a standardized, easy-to-read layout. But rest assured, these are real recipes from around the globe, created and tested by human cooks. We only use AI as a formatting tool, never to hallucinate ingredients or instructions."
             />
-            <FaqItem 
+            <FaqItem
               question="How does licensing work?"
               answer="All recipes published publicly on Chive are shared under a CC BY-SA 4.0 license, meaning anyone can use and adapt them as long as they provide attribution and share alike. Same as Wikipedia."
             />
-            <FaqItem 
+            <FaqItem
               question="How can I support Chive?"
               answer="The best way to support Chive is by using it! Add your favorite recipes, share them with others, and help us grow this open repository of culinary knowledge."
             />
