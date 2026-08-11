@@ -4,9 +4,15 @@ interface MetadataProps {
   title?: string;
   description?: string;
   image?: string;
+  video?: {
+    url: string;
+    type?: string;
+    width?: number;
+    height?: number;
+  };
 }
 
-export function useDocumentMetadata({ title, description, image }: MetadataProps) {
+export function useDocumentMetadata({ title, description, image, video }: MetadataProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -51,6 +57,16 @@ export function useDocumentMetadata({ title, description, image }: MetadataProps
     setMetaTag('meta[property="og:image"]', 'property', 'og:image', getAbsoluteUrl(image || '/og-image.png'));
     setMetaTag('meta[property="og:url"]', 'property', 'og:url', window.location.href);
 
+    // Video OpenGraph Tags
+    if (video) {
+      const videoUrl = getAbsoluteUrl(video.url);
+      setMetaTag('meta[property="og:video"]', 'property', 'og:video', videoUrl);
+      setMetaTag('meta[property="og:video:secure_url"]', 'property', 'og:video:secure_url', videoUrl);
+      setMetaTag('meta[property="og:video:type"]', 'property', 'og:video:type', video.type || 'video/mp4');
+      if (video.width) setMetaTag('meta[property="og:video:width"]', 'property', 'og:video:width', String(video.width));
+      if (video.height) setMetaTag('meta[property="og:video:height"]', 'property', 'og:video:height', String(video.height));
+    }
+
     // Twitter Tags
     setMetaTag('meta[property="twitter:title"]', 'property', 'twitter:title', title ? `${title} | Chive` : originalTitle);
     setMetaTag('meta[property="twitter:description"]', 'property', 'twitter:description', activeDesc);
@@ -65,16 +81,26 @@ export function useDocumentMetadata({ title, description, image }: MetadataProps
         const el = document.querySelector(selector);
         if (el) el.setAttribute('content', contentVal);
       };
+
+      const removeMetaTag = (selector: string) => {
+        const el = document.querySelector(selector);
+        if (el) el.remove();
+      };
       
       setMetaContent('meta[name="description"]', originalDesc);
       setMetaContent('meta[property="og:title"]', originalTitle);
       setMetaContent('meta[property="og:description"]', originalDesc);
       setMetaContent('meta[property="og:image"]', getAbsoluteUrl('/og-image.png'));
       setMetaContent('meta[property="og:url"]', window.location.href);
+      removeMetaTag('meta[property="og:video"]');
+      removeMetaTag('meta[property="og:video:secure_url"]');
+      removeMetaTag('meta[property="og:video:type"]');
+      removeMetaTag('meta[property="og:video:width"]');
+      removeMetaTag('meta[property="og:video:height"]');
       setMetaContent('meta[property="twitter:title"]', originalTitle);
       setMetaContent('meta[property="twitter:description"]', originalDesc);
       setMetaContent('meta[property="twitter:image"]', getAbsoluteUrl('/og-image.png'));
       setMetaContent('meta[property="twitter:url"]', window.location.href);
     };
-  }, [title, description, image]);
+  }, [title, description, image, video]);
 }
