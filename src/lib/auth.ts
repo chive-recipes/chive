@@ -9,10 +9,7 @@ import {
 } from "@atproto/oauth-client-browser";
 
 const XRPC = "https://public.api.bsky.app/xrpc";
-const CHIVE_SERVICE_AUDIENCE = "did:web:chive.pages.dev#chive_tracker";
-const TRACK_USER_METHOD = "com.chive.actor.track";
-const TRACKING_OAUTH_SCOPE =
-  "atproto transition:generic rpc:com.chive.actor.track?aud=did:web:chive.pages.dev%23chive_tracker";
+const OAUTH_SCOPE = "atproto transition:generic";
 
 // ── Public types ────────────────────────────────────────────────────────────
 
@@ -41,7 +38,7 @@ function resolveClientId(): string {
   if (hostname === "127.0.0.1" || hostname === "localhost") {
     const loopback = `http://127.0.0.1${port ? `:${port}` : ""}`;
     const redirectUri = `${loopback}/oauth/callback`;
-    const scope = TRACKING_OAUTH_SCOPE;
+    const scope = OAUTH_SCOPE;
     return `http://localhost?redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
   }
 
@@ -125,7 +122,7 @@ export async function signIn(handle: string): Promise<void> {
   // then redirects the browser to the PDS authorization endpoint.
   // This call never resolves — the page navigates away.
   await c.signIn(handle, {
-    scope: TRACKING_OAUTH_SCOPE,
+    scope: OAUTH_SCOPE,
   });
 }
 
@@ -162,47 +159,4 @@ export function getSessionFetchHandler(): ((pathname: string, init?: RequestInit
 
 export function getCurrentDid(): string | null {
   return session?.did ?? null;
-}
-
-/**
- * Ask the user's PDS for a short-lived service-auth proof scoped to Chive's
- * registration endpoint. The OAuth access token and DPoP key never leave the
- * browser session.
- */
-export async function getTrackingServiceToken(): Promise<string | null> {
-  if (!session) return null;
-
-  try {
-    const params = new URLSearchParams({
-      aud: CHIVE_SERVICE_AUDIENCE,
-      lxm: TRACK_USER_METHOD,
-      exp: String(Math.floor(Date.now() / 1000) + 60),
-    });
-    const response = await session.fetchHandler(
-      `/xrpc/com.atproto.server.getServiceAuth?${params}`,
-    );
-    if (!response.ok) {
-      let reason = response.statusText;
-      try {
-        const body = (await response.json()) as {
-          error?: unknown;
-          message?: unknown;
-        };
-        const error = typeof body.error === "string" ? body.error : undefined;
-        const message = typeof body.message === "string" ? body.message : undefined;
-        reason = [error, message].filter(Boolean).join(": ") || reason;
-      } catch {
-        // The status still gives us a useful, non-sensitive diagnostic.
-      }
-      console.warn(
-        `Chive tracking authorization failed (${response.status}${reason ? `: ${reason}` : ""}). Sign out and back in to grant the current permission.`,
-      );
-      return null;
-    }
-    const data = (await response.json()) as { token?: unknown };
-    return typeof data.token === "string" ? data.token : null;
-  } catch (error) {
-    console.warn("Chive tracking authorization request failed", error);
-    return null;
-  }
 }

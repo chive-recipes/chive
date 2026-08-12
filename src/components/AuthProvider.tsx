@@ -26,10 +26,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const restored = await initAuth();
         if (!cancelled) {
           setUser(restored);
-          if (restored?.did) {
-            const { registerTrackedUser } = await import("../lib/tracking");
-            void registerTrackedUser(restored.did).catch(console.error);
-          }
         }
       } catch (err) {
         console.error("Auth initialization failed:", err);

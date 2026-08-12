@@ -10,7 +10,6 @@ export default mergeConfig(
       setupFiles: ['./test/setup.ts'],
       include: [
         'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
-        'functions/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}',
       ],
     },
   })
