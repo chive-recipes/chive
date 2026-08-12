@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@atproto/oauth-client-browser": "^0.4.9",
-    "lucide-preact": "^0.577.0",
+    "lucide-preact": "^1.30.0",
     "preact": "^10.29.8",
     "preact-router": "^4.1.2"
   },
