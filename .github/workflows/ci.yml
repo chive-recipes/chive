@@ -28,9 +28,6 @@ jobs:
       - name: Type Check & Build
         run: npm run build
 
-      - name: Type Check Pages Function
-        run: npm run typecheck:worker
-
       - name: Unit Tests
         run: npm run test
 

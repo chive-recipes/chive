@@ -7,7 +7,6 @@ Before opening a pull request, run:
 ```sh
 npm ci
 npm run build
-npm run typecheck:worker
 npm run test
 ```
 

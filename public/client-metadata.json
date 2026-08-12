@@ -6,7 +6,7 @@
   "tos_uri": "https://chive.pages.dev/about",
   "policy_uri": "https://chive.pages.dev/about",
   "redirect_uris": ["https://chive.pages.dev/oauth/callback"],
-  "scope": "atproto transition:generic rpc:com.chive.actor.track?aud=did:web:chive.pages.dev%23chive_tracker",
+  "scope": "atproto transition:generic",
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
   "token_endpoint_auth_method": "none",
